@@ -1,6 +1,6 @@
 import os
-
-resolve_dist_path = lambda file: os.path.join("dist", file.split('.')[0])
+import subprocess
+import sys
 
 def wipe_dir(dir):
 	for filename in os.listdir(dir):
@@ -12,8 +12,9 @@ def wipe_dir(dir):
 		except Exception as e:
 			print(f"Failed to delete {path}: {e}")
 			exit(1)
-	print("Wiped " + dir)
+	print("\t[OK] Wiped " + dir)
 
+# TODO: python turns out to make HUGE executables, switch to smaller lang like C++
 if __name__ == "__main__":
 	s = input("This will delete all files in dist, continue? [Y/n] ")
 	if s.lower() == "n":
@@ -29,11 +30,6 @@ if __name__ == "__main__":
 		if not os.path.isfile(path):
 			continue
 
-		with open(path, 'r') as f:
-			contents = f.read()
+		subprocess.run(["pyinstaller", "--onefile", path])
 
-		out = resolve_dist_path(filename)
-		with open(out, "w") as f:
-			f.write(contents)
-
-		print(f"Created: {out}")
+		print(f"\t[OK] Created: {path}")
