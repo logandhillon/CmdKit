@@ -1,0 +1,72 @@
+#!/usr/bin/env python3
+
+import requests
+import argparse
+import os
+
+headers = {
+    'User-Agent': 'fileio-api/1.0.2 (Logan Dhillon <https://logandhillon.github.io>)'
+}
+
+parser = argparse.ArgumentParser(
+    prog='fileio',
+    description='Send and receieve files and data via file.io.',
+    epilog=headers['User-Agent'])
+
+parser.add_argument('file', help="file to upload; key of file if downloading")
+parser.add_argument('-d', '--download', action="store_true",
+                    help="downloads a file instead of uploading one")
+parser.add_argument('-v', '--version',
+                    help="prints the version and exits", action="store_true")
+parser.add_argument(
+    '-e', '--expires', help="how long until it expires, as a timestamp (ex. 15m, 2d)", default="15m")
+
+args = parser.parse_args()
+
+if args.version:
+    print(headers['User-Agent'])
+    exit(0)
+
+API = 'https://file.io'
+
+
+def error(s: str):
+    print("fileio: " + s)
+    exit(1)
+
+
+def main() -> None:
+    if args.download:
+        headers['accept'] = '*/*'
+
+        response = requests.get(API + "/" + args.file, headers=headers)
+
+        if response.ok:
+            print(response.text)
+        else:
+            json = response.json()
+            print(f"fileio: HTTP {json['status']} {json['message']}")
+    else:
+        if not os.path.isfile(args.file):
+            error("invalid file")
+
+        headers['accept'] = 'application/json'
+        files = {'file': (args.file, open(args.file, 'rb'), 'text/plain')}
+
+        data = {
+            'expires': args.expires,
+            'maxDownloads': 1,
+            'autoDelete': True
+        }
+
+        response = requests.post(API, headers=headers, data=data, files=files)
+        json = response.json()
+
+        if response.ok:
+            print(f"{json['name']} uploaded at {json['link']}")
+        else:
+            print(f"fileio: HTTP {json['status']} {json['message']}")
+
+
+if __name__ == "__main__":
+    main()
