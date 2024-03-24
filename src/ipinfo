@@ -1,0 +1,31 @@
+#!/usr/bin/env python3
+
+import subprocess
+import re
+
+def cmd(cmd: str) -> str:
+    return subprocess.check_output(cmd, shell=True).decode('utf-8').strip()
+
+
+def extract_value(query: str, src: str) -> str:
+    match = re.search(fr'{query}\s+([\w:.]+)', src)
+    if match:
+        return match.group(1)
+
+def main() -> None:
+    en0 = cmd("ifconfig en0")
+
+    print(f"""
+macOS IP Configuration
+
+    Host Name . . . . . . . . : {cmd("hostname")}
+
+Ethernet adapter en0:
+    Physical Address. . . . . : {extract_value("ether", en0)}
+    Link-local IPv6 Address . : {extract_value("inet6", en0)}
+    IPv4 Address. . . . . . . : {extract_value("inet", en0)}
+""")
+
+
+if __name__ == "__main__":
+    main()
