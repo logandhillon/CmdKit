@@ -1,0 +1,4 @@
+#!/bin/bash
+
+sudo cp -r ./src/* /usr/local/bin/
+echo Deployed all source files to local user binaries
